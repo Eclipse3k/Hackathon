@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qubic Balance Monitor API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .version-selector {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Qubic Balance Monitor API Tester</h1>
+    
+    <div class="version-selector">
+        <label for="api-version">Select API Version:</label>
+        <select id="api-version">
+            <option value="balances">api_balances (with webhooks)</option>
+            <option value="monitor">api_monitor (with history)</option>
+        </select>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="add-account">Add Account</div>
+        <div class="tab" data-tab="get-accounts">Get All Accounts</div>
+        <div class="tab" data-tab="get-specific">Get Specific Account</div>
+        <div class="tab" data-tab="delete-account">Delete Account</div>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <div class="tab-content" id="add-account">
+                <h3>Add Account to Monitor</h3>
+                <div class="form-group">
+                    <label for="account-id">Account ID:</label>
+                    <input type="text" id="account-id" placeholder="Enter Qubic account ID">
+                </div>
+                <div class="form-group webhook-field">
+                    <label for="webhook-url">Webhook URL (only for api_balances):</label>
+                    <input type="text" id="webhook-url" placeholder="Enter webhook URL">
+                </div>
+                <button id="add-account-btn">Add Account</button>
+            </div>
+
+            <div class="tab-content" id="get-accounts" style="display: none;">
+                <h3>Get All Monitored Accounts</h3>
+                <button id="get-accounts-btn">Fetch All Accounts</button>
+            </div>
+
+            <div class="tab-content" id="get-specific" style="display: none;">
+                <h3>Get Specific Account Details</h3>
+                <div class="form-group">
+                    <label for="specific-account-id">Account ID:</label>
+                    <input type="text" id="specific-account-id" placeholder="Enter Qubic account ID">
+                </div>
+                <button id="get-specific-btn">Get Account Details</button>
+            </div>
+
+            <div class="tab-content" id="delete-account" style="display: none;">
+                <h3>Delete Account from Monitoring</h3>
+                <div class="form-group">
+                    <label for="delete-account-id">Account ID:</label>
+                    <input type="text" id="delete-account-id" placeholder="Enter Qubic account ID">
+                </div>
+                <button id="delete-account-btn">Delete Account</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>API Response</h3>
+            <pre id="result">Results will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Default API endpoint
+        let apiBaseUrl = 'http://localhost:3000';
+        let currentApiVersion = 'balances';
+
+        // Show/hide webhook field based on API version
+        document.getElementById('api-version').addEventListener('change', function() {
+            currentApiVersion = this.value;
+            const webhookField = document.querySelector('.webhook-field');
+            webhookField.style.display = currentApiVersion === 'balances' ? 'block' : 'none';
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show selected tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).style.display = 'block';
+            });
+        });
+
+        // Display API response
+        function displayResult(data) {
+            if (typeof data === 'object') {
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } else {
+                document.getElementById('result').textContent = data;
+            }
+        }
+
+        // API Call function
+        async function callApi(endpoint, method, body = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(`${apiBaseUrl}${endpoint}`, options);
+                const data = await response.json();
+                
+                displayResult(data);
+                return data;
+            } catch (error) {
+                displayResult(`Error: ${error.message}`);
+                console.error('API Error:', error);
+            }
+        }
+
+        // Add Account
+        document.getElementById('add-account-btn').addEventListener('click', async function() {
+            const accountId = document.getElementById('account-id').value.trim();
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
+            
+            if (!accountId) {
+                return displayResult('Error: Account ID is required');
+            }
+            
+            let body = { accountId };
+            
+            if (currentApiVersion === 'balances' && !webhookUrl) {
+                return displayResult('Error: Webhook URL is required for api_balances');
+            }
+            
+            if (currentApiVersion === 'balances') {
+                body.webhook = webhookUrl;
+            }
+            
+            await callApi('/accounts', 'POST', body);
+        });
+
+        // Get All Accounts
+        document.getElementById('get-accounts-btn').addEventListener('click', async function() {
+            await callApi('/accounts', 'GET');
+        });
+
+        // Get Specific Account
+        document.getElementById('get-specific-btn').addEventListener('click', async function() {
+            const accountId = document.getElementById('specific-account-id').value.trim();
+            
+            if (!accountId) {
+                return displayResult('Error: Account ID is required');
+            }
+            
+            await callApi(`/accounts/${accountId}`, 'GET');
+        });
+
+        // Delete Account
+        document.getElementById('delete-account-btn').addEventListener('click', async function() {
+            const accountId = document.getElementById('delete-account-id').value.trim();
+            
+            if (!accountId) {
+                return displayResult('Error: Account ID is required');
+            }
+            
+            await callApi(`/accounts/${accountId}`, 'DELETE');
+        });
+    </script>
+</body>
+</html>
