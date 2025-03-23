@@ -1,7 +1,9 @@
 const axios = require('axios');
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // Add CORS import
+const cors = require('cors');
+const http = require('http');
+const WebSocket = require('ws');
 
 const QUBIC_RPC_URL = 'https://rpc.qubic.org/v1';
 const PORT = process.env.PORT || 3000;
@@ -12,9 +14,39 @@ const monitoredAccounts = {};
 // Express setup
 const app = express();
 app.use(bodyParser.json());
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 
-// Obtener balance de una cuenta
+// Create HTTP server
+const server = http.createServer(app);
+
+// Create WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Store connected WebSocket clients
+const clients = new Set();
+
+// WebSocket connection handler
+wss.on('connection', (ws) => {
+    console.log('🔌 New WebSocket client connected');
+    clients.add(ws);
+    
+    ws.on('close', () => {
+        console.log('🔌 WebSocket client disconnected');
+        clients.delete(ws);
+    });
+});
+
+// Function to broadcast messages to all connected clients
+function broadcastMessage(message) {
+    const messageString = JSON.stringify(message);
+    clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(messageString);
+        }
+    });
+}
+
+// Obtain balance of an account
 async function getBalance(accountId) {
     try {
         const response = await axios.get(`${QUBIC_RPC_URL}/balances/${accountId}`);
@@ -25,7 +57,7 @@ async function getBalance(accountId) {
     }
 }
 
-// Monitorear cambios de saldo para todas las cuentas
+// Monitor changes in balance all accounts
 async function monitorBalances() {
     console.log("🔍 Consultando balances de todas las cuentas...");
 
@@ -40,7 +72,7 @@ async function monitorBalances() {
             const change = currentBalance.balance - account.previousBalance.balance;
             console.log(`🚀 La cuenta ${accountId} ha recibido ${change} unidades.`);
             
-            // Enviar notificación al webhook
+            // Send notification to the webhook
             try {
                 await axios.post(account.webhook, {
                     accountId,
@@ -53,6 +85,17 @@ async function monitorBalances() {
             } catch (error) {
                 console.error(`❌ Error enviando notificación al webhook: ${error.message}`);
             }
+            
+            // Broadcast message to WebSocket clients
+            broadcastMessage({
+                type: 'account-trigger',
+                accountId,
+                previousBalance: account.previousBalance.balance,
+                currentBalance: currentBalance.balance,
+                change,
+                message: `Balance changed by ${change > 0 ? '+' : ''}${change}`,
+                timestamp: new Date().toISOString()
+            });
         }
 
         account.previousBalance = currentBalance;
@@ -127,7 +170,7 @@ app.get('/accounts/:accountId', (req, res) => {
 });
 
 // Start the server and monitoring
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log('🔍 Starting balance monitoring...');
     monitorBalances();

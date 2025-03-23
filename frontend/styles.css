@@ -157,6 +157,100 @@ body {
     gap: 20px;
 }
 
+/* Notification Bell Styles */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+}
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: var(--danger);
+    color: var(--white);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+.notifications-dropdown {
+    position: absolute;
+    top: 100%;
+    right: -70px;
+    width: 300px;
+    background-color: var(--white);
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    display: none;
+    overflow: hidden;
+}
+.notification-bell:hover .notifications-dropdown {
+    display: block;
+}
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--light-gray);
+}
+.notifications-header h3 {
+    font-size: 0.9rem;
+    color: var(--dark-blue);
+}
+.notifications-header button {
+    font-size: 0.8rem;
+    color: var(--cyan-accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.notifications-header button:hover {
+    text-decoration: underline;
+}
+.notifications-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+.notification-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--light-gray);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.notification-item:hover {
+    background-color: rgba(0, 184, 212, 0.05);
+}
+.notification-item:last-child {
+    border-bottom: none;
+}
+.notification-item .notification-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--dark-blue);
+    margin-bottom: 5px;
+}
+.notification-item .notification-message {
+    font-size: 0.8rem;
+    color: var(--dark-gray);
+    margin-bottom: 5px;
+}
+.notification-item .notification-time {
+    font-size: 0.7rem;
+    color: var(--medium-gray);
+}
+.empty-notifications {
+    padding: 20px;
+    text-align: center;
+    color: var(--medium-gray);
+    font-size: 0.9rem;
+}
+
 .user-info i {
     color: var(--medium-gray);
     cursor: pointer;

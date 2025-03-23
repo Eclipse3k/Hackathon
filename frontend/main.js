@@ -3,8 +3,12 @@ let apiBaseUrl = 'http://localhost:3000';
 let currentApiVersion = 'balances';
 let monitoredAccounts = [];
 let recentBalanceChanges = 0;
+let socket; // WebSocket connection
+let notificationCount = 0;
+let notifications = [];
 
 // DOM Elements
+const apiVersionSelect = document.getElementById('api-version');
 const accountsList = document.getElementById('accounts-list');
 const totalAccountsEl = document.getElementById('total-accounts');
 const totalBalanceEl = document.getElementById('total-balance');
@@ -19,6 +23,9 @@ const webhookUrlInput = document.getElementById('webhook-url');
 const triggerTypeSelect = document.getElementById('trigger-type');
 const notificationToast = document.getElementById('notification-toast');
 const notificationMessage = document.getElementById('notification-message');
+const notificationBadge = document.getElementById('notification-count');
+const notificationsList = document.getElementById('notifications-list');
+const clearNotificationsBtn = document.getElementById('clear-notifications');
 
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -52,7 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllAccounts();
 
     // Refresh dashboard periodically
-    setInterval(loadAllAccounts, 30000); // Refresh every 30 seconds
+    setInterval(loadAllAccounts, 5000); // Refresh every 5 seconds
+
+    // Initialize WebSocket connection
+    initializeWebSocket();
+    
+    // Clear notifications button event listener
+    clearNotificationsBtn.addEventListener('click', () => {
+        notifications = [];
+        notificationCount = 0;
+        notificationBadge.textContent = "0";
+        renderNotifications();
+    });
 });
 
 // API Functions
@@ -262,6 +280,107 @@ function showNotification(message, isError = false) {
     setTimeout(() => {
         notificationToast.classList.remove('active');
     }, 3000);
+}
+
+// Initialize WebSocket connection
+function initializeWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.hostname}:3000`;
+    
+    socket = new WebSocket(wsUrl);
+    
+    socket.addEventListener('open', () => {
+        console.log('WebSocket connection established');
+    });
+    
+    socket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+    });
+    
+    socket.addEventListener('close', () => {
+        console.log('WebSocket connection closed');
+        // Try to reconnect after a delay
+        setTimeout(initializeWebSocket, 5000);
+    });
+    
+    socket.addEventListener('error', (error) => {
+        console.error('WebSocket error:', error);
+    });
+}
+
+// Handle WebSocket messages
+function handleWebSocketMessage(data) {
+    if (data.type === 'account-trigger') {
+        // Update notification counter
+        notificationCount++;
+        notificationBadge.textContent = notificationCount;
+        
+        // Add to notifications list
+        addNotification({
+            title: `Balance Change for ${truncateString(data.accountId, 12)}`,
+            message: `${data.change > 0 ? '+' : ''}${data.change} QUBIC (${new Date(data.timestamp).toLocaleTimeString()})`,
+            time: data.timestamp,
+            accountId: data.accountId
+        });
+        
+        // Show toast notification
+        showNotification(`Account ${truncateString(data.accountId, 12)} balance changed by ${data.change > 0 ? '+' : ''}${data.change}`, false);
+        
+        // Update recent changes counter
+        recentBalanceChanges++;
+        
+        // Find the account in the monitored accounts list and update its balance
+        const accountIndex = monitoredAccounts.findIndex(account => account.accountId === data.accountId);
+        if (accountIndex !== -1) {
+            monitoredAccounts[accountIndex].currentBalance = { balance: data.currentBalance };
+            renderAccountsTable();
+        }
+        
+        // Update the dashboard statistics
+        updateDashboardStats();
+    }
+}
+
+// Add notification to dropdown
+function addNotification(notification) {
+    // Add to notifications array
+    notifications.unshift(notification);
+    
+    // Limit to 10 notifications
+    if (notifications.length > 10) {
+        notifications.pop();
+    }
+    
+    // Render notifications
+    renderNotifications();
+}
+
+// Render notifications in dropdown
+function renderNotifications() {
+    notificationsList.innerHTML = '';
+    
+    if (notifications.length === 0) {
+        notificationsList.innerHTML = '<div class="empty-notifications">No notifications yet</div>';
+        return;
+    }
+    
+    notifications.forEach(notification => {
+        const notificationItem = document.createElement('div');
+        notificationItem.className = 'notification-item';
+        
+        const timestamp = new Date(notification.time);
+        const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateString = timestamp.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        
+        notificationItem.innerHTML = `
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+            <div class="notification-time">${dateString} ${timeString}</div>
+        `;
+        
+        notificationsList.appendChild(notificationItem);
+    });
 }
 
 // Make functions available globally for onclick handlers

@@ -31,7 +31,20 @@
                     <input type="text" placeholder="Search accounts...">
                 </div>
                 <div class="user-info">
-                    <i class="fas fa-bell"></i>
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span id="notification-count" class="notification-badge">0</span>
+                        <div id="notifications-dropdown" class="notifications-dropdown">
+                            <div class="notifications-header">
+                                <h3>Recent Notifications</h3>
+                                <button id="clear-notifications">Clear All</button>
+                            </div>
+                            <div id="notifications-list" class="notifications-list">
+                                <!-- Notifications will be added here dynamically -->
+                                <div class="empty-notifications">No notifications yet</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="profile">
                         <i class="fas fa-user-circle"></i>
                     </div>
