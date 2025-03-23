@@ -35,51 +35,6 @@ The project consists of two main components:
 - Toast notifications for important events
 - Account management interface
 
-## Getting Started
-
-### Prerequisites
-- Node.js (v14 or higher)
-- npm (v6 or higher)
-
-### Installation
-
-1. Clone the repository
-   ```
-   git clone https://github.com/Eclipse3k/Hackathon.git
-   cd Hackathon
-   ```
-
-2. Install dependencies
-   ```
-   npm install
-   ```
-
-3. Start the backend server
-   ```
-   node backend/api_balances.js
-   ```
-
-4. Open the frontend in your browser
-   ```
-   open frontend/index.html
-   ```
-   
-   Alternatively, you can use a simple HTTP server:
-   ```
-   npx http-server frontend
-   ```
-
-## Usage
-
-1. Add a Qubic account to monitor by clicking the "Add Trigger" button
-2. Enter the Qubic account ID and a webhook URL (where notifications will be sent)
-3. The dashboard will display the current balance and monitor for changes
-4. When a balance change is detected:
-   - A notification appears in the bell icon
-   - The "Recent Changes" counter increases
-   - The total balance updates immediately
-   - A toast notification appears temporarily
-
 ## API Reference
 
 The backend provides the following REST API endpoints:
@@ -115,10 +70,6 @@ This enables integration with services like Make.com to create custom automation
 - Custom notification preferences
 - Historical balance tracking
 - Advanced analytics dashboard
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
