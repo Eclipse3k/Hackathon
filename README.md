@@ -60,17 +60,6 @@ When a monitored account experiences a balance change, the system sends a POST r
 
 This enables integration with services like Make.com to create custom automation workflows.
 
-## Future Enhancements
-
-- Additional trigger types:
-  - High transaction volume detection
-  - Account inactivity alerts
-  - Threshold-based notifications
-- User authentication system
-- Custom notification preferences
-- Historical balance tracking
-- Advanced analytics dashboard
-
 ## License
 
 This project is licensed under the terms found in the LICENSE file in the root directory.
