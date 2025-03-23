@@ -5,7 +5,6 @@ let monitoredAccounts = [];
 let recentBalanceChanges = 0;
 
 // DOM Elements
-const apiVersionSelect = document.getElementById('api-version');
 const accountsList = document.getElementById('accounts-list');
 const totalAccountsEl = document.getElementById('total-accounts');
 const totalBalanceEl = document.getElementById('total-balance');
@@ -17,18 +16,12 @@ const cancelAddBtn = document.getElementById('cancel-add');
 const confirmAddBtn = document.getElementById('confirm-add');
 const accountIdInput = document.getElementById('account-id');
 const webhookUrlInput = document.getElementById('webhook-url');
+const triggerTypeSelect = document.getElementById('trigger-type');
 const notificationToast = document.getElementById('notification-toast');
 const notificationMessage = document.getElementById('notification-message');
 
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', () => {
-    // Set API version change handler
-    apiVersionSelect.addEventListener('change', function() {
-        currentApiVersion = this.value;
-        const webhookField = document.querySelector('.webhook-field');
-        webhookField.style.display = currentApiVersion === 'balances' ? 'block' : 'none';
-    });
-
     // Add Account button click handler
     addAccountBtn.addEventListener('click', () => {
         accountIdInput.value = '';
@@ -104,13 +97,17 @@ async function loadAllAccounts() {
 async function addAccount() {
     const accountId = accountIdInput.value.trim();
     const webhookUrl = webhookUrlInput.value.trim();
+    const triggerType = triggerTypeSelect.value;
     
     if (!accountId) {
         showNotification('Error: Account ID is required', true);
         return;
     }
     
-    let body = { accountId };
+    let body = { 
+        accountId,
+        triggerType
+    };
     
     if (currentApiVersion === 'balances') {
         if (!webhookUrl) {
@@ -156,8 +153,8 @@ function renderAccountsTable() {
     if (monitoredAccounts.length === 0) {
         const emptyRow = document.createElement('tr');
         emptyRow.innerHTML = `
-            <td colspan="5" style="text-align: center; padding: 30px;">
-                No accounts are being monitored. Click "Add Account" to start monitoring.
+            <td colspan="6" style="text-align: center; padding: 30px;">
+                No accounts are being monitored. Click "Add Trigger" to start monitoring.
             </td>
         `;
         accountsList.appendChild(emptyRow);
@@ -182,17 +179,31 @@ function renderAccountsTable() {
         const dateOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         const formattedDate = addedDate.toLocaleDateString(undefined, dateOptions);
         
+        // Get trigger type display
+        const triggerType = account.triggerType || 'balance-change';
+        const triggerDisplay = triggerType === 'balance-change' ? 'Balance Change' : 'Unknown Trigger';
+        
         // Create table row with account data
         row.innerHTML = `
-            <td class="account-id" title="${account.accountId}">${truncateString(account.accountId, 16)}</td>
-            <td>${balanceDisplay}</td>
+            <td class="account-id" title="${account.accountId}">
+                <div class="account-cell">
+                    <span class="account-number">${truncateString(account.accountId, 16)}</span>
+                    <span class="account-label">${triggerDisplay}</span>
+                </div>
+            </td>
+            <td>
+                <div class="balance-cell">
+                    <span class="balance-amount">${balanceDisplay}</span>
+                    <span class="balance-label">QUBIC</span>
+                </div>
+            </td>
             <td title="${account.webhook}">${truncateString(account.webhook || 'N/A', 25)}</td>
             <td>${formattedDate}</td>
             <td class="actions">
-                <button class="btn-action view" onclick="viewAccount('${account.accountId}')">
+                <button class="btn-action view" onclick="viewAccount('${account.accountId}')" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn-action delete" onclick="deleteAccount('${account.accountId}')">
+                <button class="btn-action delete" onclick="deleteAccount('${account.accountId}')" title="Remove Account">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -214,7 +225,7 @@ function updateDashboardStats() {
     monitoredAccounts.forEach(account => {
         if (account.currentBalance && account.currentBalance !== 'Unknown') {
             if (typeof account.currentBalance === 'object' && account.currentBalance.balance) {
-                totalBalance += account.currentBalance.balance;
+				totalBalance += parseFloat(account.currentBalance.balance);
                 validBalanceCount++;
             }
         }
