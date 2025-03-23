@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qubic Balance Monitor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-cube"></i> Qubic Monitor</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+                <li><i class="fas fa-wallet"></i> Accounts</li>
+                <li><i class="fas fa-chart-line"></i> Analytics</li>
+                <li><i class="fas fa-cog"></i> Settings</li>
+            </ul>
+            <div class="sidebar-footer">
+                <span>Version 1.0.0</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search accounts...">
+                </div>
+                <div class="api-selector">
+                    <label for="api-version">API Version:</label>
+                    <select id="api-version">
+                        <option value="balances">api_balances (webhooks)</option>
+                        <option value="monitor">api_monitor (history)</option>
+                    </select>
+                </div>
+                <div class="user-info">
+                    <i class="fas fa-bell"></i>
+                    <div class="profile">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                <div class="summary-cards">
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Accounts</h3>
+                            <p id="total-accounts">0</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Balance</h3>
+                            <p id="total-balance">0</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Recent Changes</h3>
+                            <p id="recent-changes">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accounts-section">
+                    <div class="section-header">
+                        <h2>Monitored Accounts</h2>
+                        <button id="add-account-btn" class="btn-add">
+                            <i class="fas fa-plus"></i> Add Account
+                        </button>
+                    </div>
+                    
+                    <div class="accounts-table-container">
+                        <table class="accounts-table">
+                            <thead>
+                                <tr>
+                                    <th>Account ID</th>
+                                    <th>Balance</th>
+                                    <th>Webhook URL</th>
+                                    <th>Added</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accounts-list">
+                                <!-- Account rows will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Account Modal -->
+    <div id="add-account-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Account</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="account-id">Account ID:</label>
+                    <input type="text" id="account-id" placeholder="Enter Qubic account ID">
+                </div>
+                <div class="form-group webhook-field">
+                    <label for="webhook-url">Webhook URL:</label>
+                    <input type="text" id="webhook-url" placeholder="Enter webhook URL">
+                    <p class="help-text">Required for api_balances to receive balance change notifications</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-add" class="btn-secondary">Cancel</button>
+                <button id="confirm-add" class="btn-primary">Add Account</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="toast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-content">
+            <p id="notification-message"></p>
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
