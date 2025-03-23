@@ -1,0 +1,8 @@
+[
+  {
+    "identity": "ZJFLGVZGNZSMVAAIUDHEZETOZAJDOGVATOLUDDBKLCIJFWLFKUIJBFVFBNIH",
+    "expectedAmount": "30",
+    "callbackUrl": "https://hook.make.com/tu-webhook-unico",
+    "interval": 30000
+  }
+]
