@@ -1,5 +1,9 @@
 # Qubic Monitor
 
+Our Hackathon project for QubicxVottun Madrid 2025
+
+# Overview
+
 This application allows users to monitor Qubic blockchain accounts and receive notifications when specific triggers are activated. The primary use case is tracking balance changes, with future plans to support additional trigger types like transaction volume and inactivity alerts.
 
 ## Features
