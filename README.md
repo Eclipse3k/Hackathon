@@ -1,6 +1,6 @@
 # Qubic Monitor
 
-Our Hackathon project for QubicxVottun Madrid 2025
+Our Hackathon project for Qubic x Vottun Madrid 2025
 
 # Overview
 
