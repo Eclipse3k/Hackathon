@@ -1,8 +1,4 @@
-# Qubic Balance Monitor
-
-A real-time dashboard for monitoring Qubic account balances and receiving instant notifications when balance changes occur.
-
-## Overview
+# Qubic Monitor
 
 This application allows users to monitor Qubic blockchain accounts and receive notifications when specific triggers are activated. The primary use case is tracking balance changes, with future plans to support additional trigger types like transaction volume and inactivity alerts.
 
